@@ -11,7 +11,8 @@ builder.Services.AddRazorComponents()
 
 var connectionString = builder.Configuration.GetConnectionString("SqlConStr");
 builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlServer(connectionString));
-builder.Services.AddScoped<ModeloServices>();
+builder.Services.AddScoped<CiudadesService>();
+builder.Services.AddScoped<EncuestasService>();
 
 var app = builder.Build();
 
