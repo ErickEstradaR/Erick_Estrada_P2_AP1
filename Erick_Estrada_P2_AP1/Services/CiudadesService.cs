@@ -17,7 +17,10 @@ public class CiudadesService (IDbContextFactory<Contexto> dbContextFactory)
     public async Task<List<Ciudades>> Listar(Expression<Func<Ciudades, bool>> criterio)
     {
         await using var contexto = await dbContextFactory.CreateDbContextAsync();
-        return  await contexto.Ciudades.AsNoTracking().Where(criterio).ToListAsync();
+        return  await contexto.Ciudades.
+            AsNoTracking().
+            Where(criterio).
+            ToListAsync();
     }
     
 }
