@@ -1,0 +1,51 @@
+@using Erick_Estrada_P2_AP1.Models
+<div class="col-auto input-group align-items-center">
+
+    <InputSelect class="form-control form-select" @bind-Value="CiudadId">
+        <option value="0" selected disabled>-- Seleccione una ciudad --</option>
+        @foreach (var ciudad in CiudadesList)
+        {
+            <option value="@ciudad.CiudadId"> --- @ciudad.Nombre ---
+            </option>
+        }
+    </InputSelect>
+
+    <label class="col-form-label input-group-text">Monto de la cuenta</label>
+    <InputNumber class="form-control" @bind-Value="Monto"></InputNumber>
+
+    <button type="button" class="btn btn-outline-success bi bi-plus" @onclick="TriggerSelection">Agregar monto</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(MensajeError))
+{
+    <div class="alert alert-danger" role="alert">
+        @MensajeError
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public List<Ciudades> CiudadesList { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<(Ciudades Ciudad, double monto)> CiudadSeleccionada { get; set; }
+    [Parameter]
+    public int CiudadId { get; set; }
+    [Parameter]
+    public double Monto { get; set; }
+
+    public string MensajeError { get; set; }
+
+    public async Task TriggerSelection()
+    {
+        MensajeError = string.Empty;
+        
+        if (CiudadId > 0)
+        {
+            var ciudadSeleccionada = CiudadesList.Single(c => c.CiudadId == CiudadId);
+            await CiudadSeleccionada.InvokeAsync((ciudadSeleccionada,Monto));
+        }
+    }
+}
+}
