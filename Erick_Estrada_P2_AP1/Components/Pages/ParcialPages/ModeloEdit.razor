@@ -1,0 +1,87 @@
+@page "/Modelo/Edit"
+@using Erick_Estrada_P2_AP1.Models
+
+@*HTML*@
+<PageTitle>Modificar</PageTitle>
+
+<EditForm Model="Modelo" OnValidSubmit="Modificar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (mostrarError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @MensajeError
+        </div>
+    }
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="card-title">Modificar</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    
+                    <div class="col">
+                        <label class="form-label"><strong>ModeloId</strong></label>
+                        <div class="input-group">
+                            <InputNumber class="form-control" @bind-Value="Modelo.Id" readonly/>
+                            <button type="button" class="btn btn-outline-primary bi bi-search"/>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><strong>Fecha</strong></label>
+                        <InputDate class="form-control" @bind-Value="Modelo.Fecha"></InputDate>
+                    </div>
+                </div>
+                <div class="border border-success p-3 mt-3">
+                    <h5>Detalles</h5>
+                    <ModeloPicker ModeloId="Modelo.Id"/>
+                    <table class="table table-light">
+                        <thead class="table table-striped">
+                            <tr class="text-center">
+                                <th>Id</th>
+                                <th>x</th>
+                                <th>Remover</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <tr>
+                                <th>Id</th>
+                                <th>x</th>
+                                <th>
+                                    <button type="button" class="btn btn-outline-danger bi bi-trash"></button>
+                                </th>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr />
+                </div>
+            </div>
+            @* Footer *@
+            <div class="card-footer text-center mt-2">
+                <a href="/Modelo/Index" class="btn btn-secondary">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
+                <button type="submit" class="btn btn-primary bi bi-floppy"> Modificar</button>
+                <button type="button" class="btn btn-danger bi bi-trash"> Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Modelo Modelo { get; set; } = new Modelo();
+    private bool mostrarError = false;
+    private string MensajeError { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task Modificar()
+    {
+    }
+}

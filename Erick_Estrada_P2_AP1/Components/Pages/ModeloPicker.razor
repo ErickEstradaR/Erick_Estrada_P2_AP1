@@ -1,0 +1,25 @@
+<div class="col-auto input-group align-items-center">
+    <label class="col-form-label input-group-text">Seleccione:</label>
+    <InputSelect class="form-control form-select" @bind-Value="ModeloId">
+        <option disabled value="0">-- Seleccione --</option>
+        <option value="@ModeloId"></option>
+    </InputSelect>
+    <label class="col-form-label input-group-text">x</label>
+    <InputNumber class="form-control" id="quantity-input" @bind-Value="ModeloId" min="0" />
+    <button type="button" class="btn btn-outline-success bi bi-plus">Agregar</button>
+</div>
+
+@if (MensajeError != null)
+{
+<div class="alert alert-danger" role="alert">
+    @MensajeError
+</div>
+}
+
+@code
+{
+    [Parameter]
+    public int ModeloId { get; set; }
+    public string? MensajeError { get; set; }
+    
+}

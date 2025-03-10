@@ -5,11 +5,9 @@ namespace Erick_Estrada_P2_AP1.Services;
 
 public class ModeloServices
 {
-    
     public async Task<bool> Guardar(Modelo modelo)
     {
         return true;
-        
     }
     
     public async Task<bool> Existe(int Id)
