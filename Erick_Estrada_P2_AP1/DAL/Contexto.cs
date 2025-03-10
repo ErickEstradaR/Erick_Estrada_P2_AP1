@@ -6,7 +6,9 @@ namespace Erick_Estrada_P2_AP1.DAL;
 public class Contexto : DbContext
 {
     public Contexto(DbContextOptions<Contexto> options) : base(options) { }
-    public DbSet<Ciudades> Modelo { get; set; }
+    public DbSet<Ciudades> Ciudades { get; set; }
+    public DbSet<Encuestas> Encuestas { get; set; }
+    public DbSet<EncuestasDetalle> EncuestasDetalle { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
