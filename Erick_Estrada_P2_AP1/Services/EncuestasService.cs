@@ -33,19 +33,9 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
     {
         await using var contexto = await dbfactory
             .CreateDbContextAsync();
-        var encuestas = await contexto.Encuestas
-            .Include(e=>e.EncuestasDetalles)
-            .FirstOrDefaultAsync(e => e.EncuestaId == id);
-
-        if (encuestas == null)
-            return false;
-
-
-        await AfectarEncuesta(encuestas.EncuestasDetalles.ToArray(), suma: false);
-        contexto.EncuestasDetalle.RemoveRange(encuestas.EncuestasDetalles);
-
-        var cantidad = await contexto.SaveChangesAsync();
-        return cantidad > 0;
+        return await contexto.Encuestas
+            .Include(e => e.EncuestasDetalles)
+            .ExecuteDeleteAsync() > 0;
     }
 
     private async Task AfectarEncuesta(EncuestasDetalle[] detalle, bool suma = true)
@@ -106,10 +96,14 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
     public async Task<Encuestas?> Buscar(int id)
     {
         await using var contexto = await dbfactory.CreateDbContextAsync();
-        return await contexto.Encuestas.Where(e =>e.EncuestaId == id).Include(e=>e.EncuestasDetalles).
-            AsNoTracking()
+        return await contexto.Encuestas
+            .Where(e => e.EncuestaId == id)
+            .Include(e => e.EncuestasDetalles)
+            .ThenInclude(ed => ed.Ciudad) 
+            .AsNoTracking()
             .FirstOrDefaultAsync();
     }
+
     
 
     public async Task<List<Encuestas>> Listar(Expression<Func<Encuestas, bool>>criterio)
