@@ -10,4 +10,5 @@ public class Encuestas
     [MaxLength(50)]
     public string Asignatura { get; set; }
     public List<EncuestasDetalle> EncuestasDetalles { get; set; } = new List<EncuestasDetalle>();
+    public double MontoTotal { get; set; }
 }
