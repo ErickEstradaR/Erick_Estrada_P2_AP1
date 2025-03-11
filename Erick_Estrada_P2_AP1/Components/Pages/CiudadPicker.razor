@@ -28,7 +28,7 @@
     [Parameter]
     public List<Ciudades> CiudadesList { get; set; } = [];
     [Parameter]
-    public EventCallback<(Ciudades Ciudad, double monto)> CiudadSeleccionada { get; set; }
+    public EventCallback<(Ciudades , double )> CiudadSeleccionada { get; set; }
     [Parameter]
     public int CiudadId { get; set; }
     [Parameter]
@@ -39,12 +39,15 @@
     public async Task TriggerSelection()
     {
         MensajeError = string.Empty;
-        
+    
         if (CiudadId > 0)
         {
             var ciudadSeleccionada = CiudadesList.Single(c => c.CiudadId == CiudadId);
-            await CiudadSeleccionada.InvokeAsync((ciudadSeleccionada,Monto));
+            await CiudadSeleccionada.InvokeAsync((ciudadSeleccionada, Monto));
+        }
+        else
+        {
+            MensajeError = "Debe seleccionar una ciudad.";
         }
     }
-}
-}
+    }
