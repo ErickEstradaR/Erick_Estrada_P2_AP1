@@ -29,19 +29,19 @@
                     <div class="col">
                         <label class="form-label"><strong>EncuestaId</strong></label>
                         <div class="input-group">
-                            <InputNumber class="form-control" @bind-Value=""/>
+                            <InputNumber class="form-control" @bind-Value="@Encuesta.EncuestaId"/>
                             <button type="button" class="btn btn-outline-primary bi bi-search" @onclick="()=>Buscar(Encuesta.EncuestaId)"/>
                         </div>
                     </div>
                     <div class="col">
                         <label class="form-label"><strong>Fecha</strong></label>
-                        <InputDate class="form-control" @bind-Value=""></InputDate>
+                        <InputDate class="form-control" @bind-Value="Encuesta.FechaEncuesta"></InputDate>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Asignatura</strong></label>
-                    <InputText class="form-control" @bind-Value=""></InputText>
+                    <InputText class="form-control" @bind-Value="Encuesta.Asignatura"></InputText>
                 </div>
                 <div class="border border-success p-3 mt-3">
                     <h5>Detalle</h5>
@@ -52,11 +52,11 @@
                     />
                     <table class="table table-light">
                         <thead class="table table-striped">
-                            <tr class="text-center">
-                                <th>Ciudad</th>
-                                <th>Monto</th>
-                                <th>Remover</th>
-                            </tr>
+                        <tr class="text-center">
+                            <th>Ciudad</th>
+                            <th>Monto</th>
+                            <th>Remover</th>
+                        </tr>
                         </thead>
                         <tbody class="text-center">
                         @foreach (var detalle in Encuesta.EncuestasDetalles)
@@ -65,7 +65,7 @@
                                 <td>@detalle.CiudadId</td>
                                 <td>@detalle.Monto</td>
                                 <td>
-                                    <button type="button" @onclick="() => Eliminar(detalle)" class="btn btn-outline-danger bi bi-trash mt-2"> Remover</button>
+                                    <button type="button" @onclick="() => EliminarDetalle(detalle)" class="btn btn-outline-danger bi bi-trash mt-2"> Remover</button>
                                 </td>
                             </tr>
                         }
@@ -74,20 +74,27 @@
                     <hr />
                 </div>
             </div>
+            <div class="card-footer d-flex justify-content-between">
+                <label class="ms-3"><strong>Cantidad:</strong> @Encuesta.EncuestasDetalles.Count</label>
+                <div class="col-5 text-end">
+                    <label class="ms-5"><strong>Total:</strong> $@Encuesta.EncuestasDetalles.Sum(e => e.Monto).ToString("N2")</label>
+                </div>
+            </div>
+
             @* Footer *@
             <div class="card-footer text-center mt-2">
-                <a href="/Modelo/Index" class="btn btn-secondary">
-                    <span class="bi bi-arrow-left"></span> Nuevo
+                <a href="/Encuesta/Index" class="btn btn-secondary">
+                    <span class="bi bi-arrow-left" ></span> Volver
                 </a>
                 <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
-                <button type="button" class="btn btn-danger bi bi-trash" @onclick="EliminarEncuesta"> Eliminar</button>
+                <button type="button" class="btn btn-danger bi bi-trash" @onclick="Eliminar"> Eliminar</button>
             </div>
         </div>
     </div>
 </EditForm>
 
 @code {
-    public List<Ciudades> listaCiudades { get; set; } = new List<Ciudades>();
+    public List<Ciudades?> listaCiudades { get; set; } = new List<Ciudades>();
     public Encuestas Encuesta { get; set; } = new Encuestas();
     private bool mostrarError = false;
     private string MensajeError { get; set; }
@@ -96,6 +103,7 @@
     protected override async Task OnInitializedAsync()
     {
         listaCiudades = await ciudadService.Listar(c => true);
+        Encuesta.FechaEncuesta = DateTime.Now;
     }
 
     private async Task Guardar()
@@ -110,8 +118,8 @@
         try
         {
             await encuestaService.Guardar(Encuesta);
-            Encuesta = new Encuestas(); 
-            nav.NavigateTo("/Encuestas/Index");
+            Encuesta = new Encuestas();
+            Encuesta.FechaEncuesta = DateTime.Now;
         }
         catch (Exception ex)
         {
@@ -142,17 +150,12 @@
         }
     }
 
-    public void Eliminar(EncuestasDetalle detalle)
+    private void EliminarDetalle(EncuestasDetalle detalle)
     {
         Encuesta.EncuestasDetalles.Remove(detalle);
     }
 
-    private void EliminarEncuesta()
-    {
-        Encuesta = new Encuestas(); 
-    }
-
-    private void HandleCiudadSeleccionada((Ciudades ciudad, int Monto) selection)
+    private void HandleCiudadSeleccionada((Ciudades ciudad, double Monto) selection)
     {
         if (selection.ciudad != null && selection.Monto > 0)
         {
@@ -161,7 +164,7 @@
                 CiudadId = selection.ciudad.CiudadId,
                 Monto = selection.Monto
             };
-            
+            Encuesta.MontoTotal += selection.Monto;
             Encuesta.EncuestasDetalles.Add(nuevoDetalle);
             DetalleSeleccionado = new EncuestasDetalle();
         }
@@ -171,4 +174,14 @@
             mostrarError = true;
         }
     }
+
+    public async Task Eliminar()
+    {
+        var eliminado = await encuestaService.Eliminar(Encuesta.EncuestaId);
+        if (eliminado)
+        {
+            nav.NavigateTo("/Encuesta/Index");
+        }
+    }
+
 }
