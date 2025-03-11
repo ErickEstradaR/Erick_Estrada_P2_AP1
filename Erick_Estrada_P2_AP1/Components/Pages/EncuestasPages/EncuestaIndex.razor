@@ -1,0 +1,131 @@
+@page "/Encuesta/Index"
+@inject EncuestasService encuestaService
+@using Erick_Estrada_P2_AP1.Models
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between">
+            <h5 class="card-title text-center"><strong>Encuestas</strong></h5>
+            <a href="/Encuesta/view" class="btn btn-primary">
+                Registro de Encuestas
+            </a>
+        </div>
+        <div class="card-body">
+
+           
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label class="col-form-label"><strong>Filtrar por</strong></label>
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="" selected disabled>Elija una opción</option>
+                        <option value="Asignatura">Asignatura</option>
+                        <option value="Id">Id</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-4">
+                    <label class="col-form-label"><strong>Búsqueda</strong></label>
+                    <div class="input-group">
+                        <input class="form-control" placeholder="Buscar" @bind="ValorFiltro" />
+                        <button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+                    </div>
+                </div>
+
+                <div class="col-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary bi bi-arrow-counterclockwise" @onclick="Restablecer">
+                        Restablecer
+                    </button>
+                </div>
+            </div>
+
+           
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label class="col-form-label"><strong>Desde</strong></label>
+                    <InputDate class="form-control" @bind-Value="FechaDesde" />
+                </div>
+                <div class="col-3">
+                    <label class="col-form-label"><strong>Hasta</strong></label>
+                    <InputDate class="form-control" @bind-Value="FechaHasta" />
+                </div>
+            </div>
+
+            
+            <table class="table table-hover text-center mt-3">
+                <thead class="table table-striped text-black">
+                    <tr>
+                        <th>Id</th>
+                        <th>Fecha</th>
+                        <th>Asignatura</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var encuesta in ListaEncuestas)
+                    {
+                        <tr>
+                            <td>@encuesta.EncuestaId</td>
+                            <td>@encuesta.FechaEncuesta.ToShortDateString()</td>
+                            <td>@encuesta.Asignatura</td>
+                            <td>@encuesta.MontoTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <label class="ms-3"><strong>Cantidad:</strong> @ListaEncuestas.Count</label>
+            <div class="col-5 text-end">
+                <label class="ms-5"><strong>Total:</strong> @ListaEncuestas.Sum(e => e.MontoTotal).ToString("N2")</label>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code
+{
+    public List<Encuestas> ListaEncuestas { get; set; } = new List<Encuestas>();
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+    public DateTime? FechaDesde { get; set; }
+    public DateTime? FechaHasta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaEncuestas = await encuestaService.Listar(c => c.EncuestaId > 0);
+    }
+
+    private async Task Buscar()
+    {
+        if (ValorFiltro.Trim() != "")
+        {
+            if (Filtro == "Asignatura")
+            {
+                ListaEncuestas = await encuestaService.Listar(e => e.Asignatura.ToLower().Contains(ValorFiltro.ToLower()));
+            }
+            else if (Filtro == "Id" && int.TryParse(ValorFiltro, out var id))
+            {
+                ListaEncuestas = await encuestaService.Listar(e => e.EncuestaId == id);
+            }
+        }
+        else
+        {
+            ListaEncuestas = await encuestaService.Listar(e => e.EncuestaId > 0);
+        }
+        
+    }
+
+    private async Task Restablecer()
+    {
+        ListaEncuestas = await encuestaService.Listar(e => e.EncuestaId > 0);
+        Filtro = string.Empty;
+        ValorFiltro = string.Empty;
+        FechaDesde = null;
+        FechaHasta = null;
+    }
+}
