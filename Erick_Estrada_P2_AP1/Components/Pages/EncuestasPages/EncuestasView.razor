@@ -62,7 +62,7 @@
                         @foreach (var detalle in Encuesta.EncuestasDetalles)
                         {
                             <tr class="text-center">
-                                <td>@detalle.CiudadId</td>
+                                <td>@detalle.Ciudad.Nombre</td>
                                 <td>@detalle.Monto</td>
                                 <td>
                                     <button type="button" @onclick="() => EliminarDetalle(detalle)" class="btn btn-outline-danger bi bi-trash mt-2"> Remover</button>
