@@ -12,10 +12,9 @@ public class EncuestasDetalle
     public int EncuestaId { get; set; }
     public Encuestas? Encuesta { get; set; }
     
-    
     public int CiudadId { get; set; }
-    [ForeignKey("CiudadId")]
-    public Ciudades? Ciudad { get; set; }
+    [ForeignKey("CiudadId")] 
+    public Ciudades? Ciudad { get; set; } = null!;
     
     [Required (ErrorMessage = "Ingresa un valor valido")]
     [Range(1, double.MaxValue)]
