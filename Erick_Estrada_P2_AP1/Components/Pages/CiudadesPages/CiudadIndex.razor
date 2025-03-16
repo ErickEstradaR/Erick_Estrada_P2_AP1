@@ -1,0 +1,50 @@
+@page "/Ciudad/Index"
+@inject CiudadesService ciudadService
+@using Erick_Estrada_P2_AP1.Models
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between">
+            <h5 class="card-title text-center"><strong>Ciudades</strong></h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover text-center mt-3">
+                <thead class="table table-striped text-black">
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ciudad in ListaCiudades)
+                    {
+                        <tr>
+                            <td>@ciudad.CiudadId</td>
+                            <td>@ciudad.Nombre</td>
+                            <td>@ciudad.Monto</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <label class="ms-3"><strong>Total: @ListaCiudades.Sum(c=>c.Monto)</strong></label>
+        </div>
+
+    </div>
+</div>
+
+@code
+{
+    public List<Ciudades> ListaCiudades { get; set; } = new List<Ciudades>();
+    protected override async Task OnInitializedAsync()
+    {
+        ListaCiudades = await ciudadService.Listar(c => c.CiudadId > 0);
+    }
+    
+}
