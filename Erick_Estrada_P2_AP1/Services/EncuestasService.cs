@@ -16,6 +16,20 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
         return await Modificar(encuesta);
     }
     
+    private async Task AfectarMontoCiudad(IEnumerable<EncuestasDetalle> detalles, bool suma)
+    {
+        await using var contexto = await dbfactory.CreateDbContextAsync();
+        foreach (var detalle in detalles)
+        {
+            var ciudad = await contexto.Ciudades.FindAsync(detalle.CiudadId);
+            if (ciudad != null)
+            {
+                ciudad.Monto += suma ? detalle.Monto : -detalle.Monto;
+            }
+        }
+        await contexto.SaveChangesAsync();
+    }
+    
     public async Task<bool> Existe(int Id)
     {
         await using var contexto = await dbfactory.CreateDbContextAsync();
@@ -26,16 +40,21 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
     {
         await using var contexto = await dbfactory.CreateDbContextAsync();
         contexto.Encuestas.Add(encuestas);
+        await AfectarMontoCiudad(encuestas.EncuestasDetalles, true);
         return await contexto.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> Eliminar(int id)
     {
-        await using var contexto = await dbfactory
-            .CreateDbContextAsync();
-        return await contexto.Encuestas
-            .Include(e => e.EncuestasDetalles)
-            .ExecuteDeleteAsync() > 0;
+        await using var contexto = await dbfactory.CreateDbContextAsync();
+        var encuesta = await contexto.Encuestas.Include(e => e.EncuestasDetalles).FirstOrDefaultAsync(e => e.EncuestaId == id);
+
+        if (encuesta == null)
+            return false;
+
+        await AfectarMontoCiudad(encuesta.EncuestasDetalles, false);
+        contexto.Encuestas.Remove(encuesta);
+        return await contexto.SaveChangesAsync() > 0;
     }
 
     private async Task AfectarEncuesta(EncuestasDetalle[] detalle, bool suma = true)
@@ -52,34 +71,19 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
     
     public async Task<bool> Modificar(Encuestas encuestas)
     {
-        await using var contexto = await dbfactory
-            .CreateDbContextAsync();
+        await using var contexto = await dbfactory.CreateDbContextAsync();
 
-        var encuestaOriginal = await contexto.Encuestas
-            .Include(e=>e.EncuestasDetalles)
-            .FirstOrDefaultAsync(e =>e.EncuestaId == encuestas.EncuestaId);
+        var encuestaOriginal = await contexto.Encuestas.Include(e => e.EncuestasDetalles).FirstOrDefaultAsync(e => e.EncuestaId == encuestas.EncuestaId);
 
         if (encuestaOriginal == null)
             return false;
 
-        await AfectarEncuesta(encuestaOriginal.EncuestasDetalles.ToArray(), false);
-
-        foreach (var detalleOriginal in encuestaOriginal.EncuestasDetalles)
-        {
-            if (!encuestas.EncuestasDetalles.Any(d => d.DetalleId == detalleOriginal.DetalleId))
-            {
-                contexto.EncuestasDetalle.Remove(detalleOriginal);
-            }
-        }
-
-        await AfectarEncuesta(encuestaOriginal.EncuestasDetalles.ToArray(), true);
+        await AfectarMontoCiudad(encuestaOriginal.EncuestasDetalles, false);
         contexto.Entry(encuestaOriginal).CurrentValues.SetValues(encuestas);
 
         foreach (var detalle in encuestas.EncuestasDetalles)
         {
-            var detalleExistente = encuestas.EncuestasDetalles
-                .FirstOrDefault(d => d.DetalleId == detalle.DetalleId);
-
+            var detalleExistente = encuestaOriginal.EncuestasDetalles.FirstOrDefault(d => d.DetalleId == detalle.DetalleId);
             if (detalleExistente != null)
             {
                 contexto.Entry(detalleExistente).CurrentValues.SetValues(detalle);
@@ -90,6 +94,7 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
             }
         }
 
+        await AfectarMontoCiudad(encuestas.EncuestasDetalles, true);
         return await contexto.SaveChangesAsync() > 0;
     }
     
@@ -103,16 +108,16 @@ public class EncuestasService (IDbContextFactory<Contexto> dbfactory)
             .AsNoTracking()
             .FirstOrDefaultAsync();
     }
-
     
-
-    public async Task<List<Encuestas>> Listar(Expression<Func<Encuestas, bool>>criterio)
+    public async Task<List<Encuestas>> Listar(Expression<Func<Encuestas, bool>> criterio)
     {
         await using var contexto = await dbfactory.CreateDbContextAsync();
-        return await contexto.Encuestas.
-            Include(e=>e.EncuestasDetalles).
-            Where
-            (criterio).AsNoTracking().
-            ToListAsync();
+        return await contexto.Encuestas
+            .Include(e => e.EncuestasDetalles)
+            .ThenInclude(ed => ed.Ciudad) 
+            .Where(criterio)
+            .AsNoTracking()
+            .ToListAsync();
     }
+
 }
