@@ -35,7 +35,7 @@
                     </div>
                     <div class="col">
                         <label class="form-label"><strong>Fecha</strong></label>
-                        <InputDate class="form-control" @bind-Value="Encuesta.FechaEncuesta"></InputDate>
+                        <InputDate class="form-control" @bind-Value="Encuesta.FechaEncuesta" readonly></InputDate>
                     </div>
                 </div>
 
@@ -62,7 +62,7 @@
                         @foreach (var detalle in Encuesta.EncuestasDetalles)
                         {
                             <tr class="text-center">
-                                <td>@detalle.Ciudad.Nombre</td>
+                                <td>@detalle.Ciudad?.Nombre</td>
                                 <td>@detalle.Monto</td>
                                 <td>
                                     <button type="button" @onclick="() => EliminarDetalle(detalle)" class="btn btn-outline-danger bi bi-trash mt-2"> Remover</button>
@@ -95,6 +95,7 @@
 
 @code {
     public List<Ciudades?> listaCiudades { get; set; } = new List<Ciudades>();
+    public Ciudades ciudad { get; set; } = new Ciudades();
     public Encuestas Encuesta { get; set; } = new Encuestas();
     private bool mostrarError = false;
     private string MensajeError { get; set; }
@@ -108,13 +109,14 @@
 
     private async Task Guardar()
     {
+        
         if (Encuesta.EncuestasDetalles.Count == 0)
         {
             MensajeError = "Debe agregar al menos un detalle antes de guardar la encuesta.";
             mostrarError = true;
             return;
         }
-
+        
         try
         {
             await encuestaService.Guardar(Encuesta);
@@ -136,6 +138,7 @@
             if (resultado != null)
             {
                 Encuesta = resultado;
+                mostrarError = false;
             }
             else
             {
@@ -177,11 +180,40 @@
 
     public async Task Eliminar()
     {
-        var eliminado = await encuestaService.Eliminar(Encuesta.EncuestaId);
-        if (eliminado)
+        if (Encuesta.EncuestaId == 0)
         {
-            nav.NavigateTo("/Encuesta/Index");
+            MensajeError = "Debe especificar un ID de encuesta válido antes de eliminar.";
+            mostrarError = true;
+            return;
+        }
+
+        try
+        {
+            var encuestaExistente = await encuestaService.Buscar(Encuesta.EncuestaId);
+            if (encuestaExistente == null)
+            {
+                MensajeError = $"No se encontró la encuesta con el ID {Encuesta.EncuestaId}.";
+                mostrarError = true;
+                return;
+            }
+
+            var eliminado = await encuestaService.Eliminar(Encuesta.EncuestaId);
+            if (eliminado)
+            {
+                nav.NavigateTo("/Encuesta/Index");
+            }
+            else
+            {
+                MensajeError = "No se pudo eliminar la encuesta. Verifique si el ID es correcto.";
+                mostrarError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar la Encuesta: {ex.Message}";
+            mostrarError = true;
         }
     }
+
 
 }
